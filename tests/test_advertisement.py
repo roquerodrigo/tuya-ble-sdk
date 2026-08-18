@@ -64,6 +64,34 @@ def test_an_empty_service_record_is_not_a_product_id():
     assert parse_advertisement({SERVICE_UUID: b"\x00"}, {}).product_id is None
 
 
-def test_an_undecodable_product_id_is_a_protocol_error():
-    with pytest.raises(TuyaBleProtocolError, match="advertised product id"):
-        parse_advertisement({SERVICE_UUID: b"\x00\xff"}, {})
+def test_an_obfuscated_product_record_still_yields_the_uuid():
+    """A bound device broadcasts bytes that name no product but decrypt the uuid."""
+    raw = bytes.fromhex("5bdcee4a9b776f7a")
+    key = md5(raw).digest()
+    manufacturer_data = {
+        MANUFACTURER_DATA_IDENTIFIER: bytes([0x80, 3, 0, 0, 1, 0])
+        + encrypt(key, key, UUID.encode())
+    }
+
+    info = parse_advertisement({SERVICE_UUID: b"\x00" + raw}, manufacturer_data)
+
+    assert info.product_id is None
+    assert info.uuid == UUID
+    assert info.is_bound is True
+
+
+def test_a_partial_block_of_encrypted_uuid_is_a_protocol_error():
+    manufacturer_data = {MANUFACTURER_DATA_IDENTIFIER: bytes(6) + b"short"}
+
+    with pytest.raises(TuyaBleProtocolError, match="whole number of AES blocks"):
+        parse_advertisement(_service_data(), manufacturer_data)
+
+
+def test_an_undecodable_uuid_is_a_protocol_error():
+    key = md5(PRODUCT_ID.encode()).digest()
+    manufacturer_data = {
+        MANUFACTURER_DATA_IDENTIFIER: bytes(6) + encrypt(key, key, bytes([0xFF]) * 16)
+    }
+
+    with pytest.raises(TuyaBleProtocolError, match="Failed to decode"):
+        parse_advertisement(_service_data(), manufacturer_data)

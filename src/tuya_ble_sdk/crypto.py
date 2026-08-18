@@ -64,14 +64,16 @@ def decrypt(key: bytes, initialization_vector: bytes, data: bytes) -> bytes:
     return decryptor.update(data) + decryptor.finalize()
 
 
-def decrypt_advertised_uuid(product_id: bytes, encrypted_uuid: bytes) -> str:
+def decrypt_advertised_uuid(raw_product_id: bytes, encrypted_uuid: bytes) -> str:
     """
     Recover the device uuid a Tuya BLE advertisement carries.
 
-    The product id broadcast alongside it is the whole secret: its MD5 digest
-    serves as both the key and the initialization vector.
+    The product-id record broadcast alongside it is the whole secret: its MD5
+    digest serves as both the key and the initialization vector. The record is
+    hashed as it arrived — a bound device broadcasts bytes that are not the
+    printable product id, and those bytes are still the key.
     """
-    key = md5(product_id).digest()  # noqa: S324 -- the protocol specifies MD5
+    key = md5(raw_product_id).digest()  # noqa: S324 -- the protocol specifies MD5
     if len(encrypted_uuid) % BLOCK_SIZE != 0:
         message = (
             f"Failed to decrypt the advertised uuid: {len(encrypted_uuid)} bytes "
