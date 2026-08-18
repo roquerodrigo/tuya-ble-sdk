@@ -37,14 +37,27 @@ class FakeAdvertisement:
 
 @pytest.fixture
 def discovered(monkeypatch):
+    """Stand in for the scanner, both as a sweep and as a live callback."""
     found: dict[str, tuple[FakeBleDevice, FakeAdvertisement]] = {
         ADDRESS: (FakeBleDevice(), FakeAdvertisement())
     }
 
-    async def _discover(**_kwargs):
-        return found
+    class FakeScanner:
+        def __init__(self, detection_callback=None):
+            self._detected = detection_callback
 
-    monkeypatch.setattr(cli_module.BleakScanner, "discover", staticmethod(_discover))
+        async def start(self):
+            for device, advertisement in list(found.values()):
+                self._detected(device, advertisement)
+
+        async def stop(self):
+            return None
+
+        @staticmethod
+        async def discover(**_kwargs):
+            return found
+
+    monkeypatch.setattr(cli_module, "BleakScanner", FakeScanner)
     return found
 
 
