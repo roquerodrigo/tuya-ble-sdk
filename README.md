@@ -46,6 +46,15 @@ uv run --extra cli tuya-ble read \
 `scan` lists every nearby Tuya BLE device with its product id and uuid; `read`
 runs one session and prints the datapoints it reported.
 
+## Not implemented
+
+The device may report datapoints in a *signed* form (`0x8004` / `0x8005`)
+instead of the plain one this SDK reads. Those two commands are recognised and
+logged, not parsed: the reference implementation disagrees with itself about
+where the records start inside them, and no device was available to settle it.
+A device that uses them shows up as a read that reports no datapoint, with the
+command name in the debug log.
+
 ## Development
 
 ```bash
