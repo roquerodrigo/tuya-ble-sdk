@@ -68,9 +68,15 @@ def read(
 
 
 def _configure_logging(*, verbose: bool) -> None:
-    """Turn on protocol logging when the user asked for it."""
+    """
+    Turn on protocol logging when the user asked for it.
+
+    Only this package is turned up: bleak's own debug output is a wall of D-Bus
+    traffic that buries the frames the user asked to see.
+    """
     if verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.WARNING)
+        logging.getLogger(__package__).setLevel(logging.DEBUG)
 
 
 async def _async_scan(seconds: float) -> list[tuple[BLEDevice, AdvertisementInfo]]:
