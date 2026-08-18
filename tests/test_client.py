@@ -239,3 +239,19 @@ def _fragments(payload: bytes) -> list[bytes]:
     from tuya_ble_sdk.protocol import build_packets
 
     return build_packets(payload, 3)
+
+
+async def test_a_client_can_run_two_sessions(connected, credentials):
+    tuya_client = TuyaBleClient(FakeBleDevice(), credentials)
+
+    first = await tuya_client.async_read_data_points()
+    connected._reassembler = _fresh_reassembler()
+    second = await tuya_client.async_read_data_points()
+
+    assert set(first) == set(second) == {3, 5, 9, 14, 15}
+
+
+def _fresh_reassembler():
+    from tuya_ble_sdk.protocol import PacketReassembler
+
+    return PacketReassembler()
