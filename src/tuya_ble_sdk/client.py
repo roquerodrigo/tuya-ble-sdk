@@ -20,7 +20,11 @@ from .commands import (
     verify_pairing_result,
 )
 from .crypto import login_key, session_key
-from .exceptions import TuyaBleConnectionError, TuyaBleError, TuyaBleProtocolError
+from .exceptions import (
+    TuyaBleConnectionError,
+    TuyaBleError,
+    TuyaBleHandshakeTimeoutError,
+)
 from .protocol import (
     DEFAULT_PROTOCOL_VERSION,
     NOTIFY_CHARACTERISTIC_UUID,
@@ -86,7 +90,8 @@ class TuyaBleClient:
 
         The device answers the status request with an acknowledgement and then
         pushes its datapoints as separate notifications, so the report is
-        considered complete once it goes quiet.
+        considered complete once it goes quiet. It often has nothing to say —
+        the result is then empty, which is an answer, not an error.
         """
         await self._async_connect()
         try:
@@ -136,12 +141,19 @@ class TuyaBleClient:
             LOGGER.debug("%s: disconnect failed; ignoring", self.address, exc_info=True)
 
     async def _async_handshake(self) -> None:
-        """Derive the session key and pair, in the order the protocol requires."""
+        """
+        Derive the session key and pair, in the order the protocol requires.
+
+        The device-information request is the only frame protected by a key
+        derived from the local key alone, so a device that answers nothing at
+        all here is reporting — by silence — that it could not read it.
+        """
         reply = await self._async_request(
             TuyaBleCommandCode.SENDER_DEVICE_INFO,
             b"",
             key=self._login_key,
             security_flag=SECURITY_FLAG_LOGIN_KEY,
+            unanswered_error=TuyaBleHandshakeTimeoutError,
         )
         self._adopt_device_info(parse_device_info(reply.data))
         paired = await self._async_request(
@@ -164,7 +176,14 @@ class TuyaBleClient:
         )
 
     async def _async_collect_report(self) -> dict[int, DataPoint]:
-        """Ask for a full status report and drain the notifications it triggers."""
+        """
+        Ask for a full status report and drain the notifications it triggers.
+
+        An empty result is a normal outcome, not a failure: these devices
+        acknowledge the request and then stay quiet unless they have something
+        to report, so the caller gets an empty mapping and keeps whatever it
+        read last.
+        """
         await self._async_request(TuyaBleCommandCode.SENDER_DEVICE_STATUS, b"")
         collected: dict[int, DataPoint] = {}
         timeout = FIRST_REPORT_TIMEOUT
@@ -177,8 +196,7 @@ class TuyaBleClient:
                 collected[data_point.identifier] = data_point
             timeout = REPORT_QUIET_PERIOD
         if not collected:
-            message = f"Failed to read {self.address}: it reported no datapoint"
-            raise TuyaBleProtocolError(message)
+            LOGGER.debug("%s: the device reported no datapoint", self.address)
         return collected
 
     async def _async_request(
@@ -188,6 +206,7 @@ class TuyaBleClient:
         *,
         key: bytes | None = None,
         security_flag: int = SECURITY_FLAG_SESSION_KEY,
+        unanswered_error: type[TuyaBleConnectionError] = TuyaBleConnectionError,
     ) -> Frame:
         """Send one frame and wait for the reply that quotes its sequence number."""
         sequence_number = self._next_sequence_number()
@@ -207,7 +226,7 @@ class TuyaBleClient:
             reply = await asyncio.wait_for(pending, RESPONSE_TIMEOUT)
         except TimeoutError as exception:
             message = f"Failed to read {self.address}: {code.name} was not answered"
-            raise TuyaBleConnectionError(message) from exception
+            raise unanswered_error(message) from exception
         finally:
             self._pending.pop(sequence_number, None)
         return reply

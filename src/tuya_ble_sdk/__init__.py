@@ -14,6 +14,7 @@ from .exceptions import (
     TuyaBleAuthenticationError,
     TuyaBleConnectionError,
     TuyaBleError,
+    TuyaBleHandshakeTimeoutError,
     TuyaBleProtocolError,
 )
 from .models import (
@@ -38,6 +39,7 @@ __all__ = [
     "TuyaBleConnectionError",
     "TuyaBleCredentials",
     "TuyaBleError",
+    "TuyaBleHandshakeTimeoutError",
     "TuyaBleProtocolError",
     "parse_advertisement",
 ]

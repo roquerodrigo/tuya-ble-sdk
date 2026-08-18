@@ -96,12 +96,15 @@ async def test_a_rejected_local_key_is_an_authentication_error(connected, creden
     assert connected.disconnected is True
 
 
-async def test_a_silent_device_times_out(connected, credentials):
+async def test_a_device_with_nothing_to_report_returns_nothing(connected, credentials):
+    """Silence after the status request is an answer, not a failure."""
     connected.reports = []
     connected.status_result = b"\x00"
 
-    with pytest.raises(TuyaBleProtocolError, match="reported no datapoint"):
-        await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
+    assert (
+        await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points() == {}
+    )
+    assert connected.disconnected is True
 
 
 async def test_an_unanswered_command_is_a_connection_error(
@@ -255,3 +258,34 @@ def _fresh_reassembler():
     from tuya_ble_sdk.protocol import PacketReassembler
 
     return PacketReassembler()
+
+
+async def test_a_silent_handshake_is_its_own_error(monkeypatch, connected, credentials):
+    """A device that ignores the device-information request says so by silence."""
+    from tuya_ble_sdk.exceptions import TuyaBleHandshakeTimeoutError
+
+    monkeypatch.setattr(connected, "_answer", lambda _frame: None)
+
+    with pytest.raises(TuyaBleHandshakeTimeoutError, match="SENDER_DEVICE_INFO"):
+        await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
+
+
+async def test_a_silent_status_request_is_a_plain_connection_error(
+    monkeypatch, connected, credentials
+):
+    """After the handshake the session key protects the frames, not the local key."""
+    from tuya_ble_sdk.exceptions import TuyaBleHandshakeTimeoutError
+
+    original = connected._answer
+
+    def _answer(frame):
+        if TuyaBleCommandCode.from_value(frame.code) is not (
+            TuyaBleCommandCode.SENDER_DEVICE_STATUS
+        ):
+            original(frame)
+
+    monkeypatch.setattr(connected, "_answer", _answer)
+
+    with pytest.raises(TuyaBleConnectionError, match="SENDER_DEVICE_STATUS") as raised:
+        await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
+    assert not isinstance(raised.value, TuyaBleHandshakeTimeoutError)
