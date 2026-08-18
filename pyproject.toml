@@ -23,8 +23,18 @@ classifiers = [
 # installing. Exact versions belong in the dependency groups below and in
 # uv.lock, neither of which reaches the consumer.
 dependencies = [
-    "aiohttp>=3.11",
+    "bleak>=3.0.0",
+    "bleak-retry-connector>=4.4.0",
+    "cryptography>=44.0.0",
 ]
+
+[project.optional-dependencies]
+cli = [
+    "typer>=0.12.0",
+]
+
+[project.scripts]
+tuya-ble = "tuya_ble_sdk.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/roquerodrigo/tuya-ble-sdk"
@@ -48,6 +58,7 @@ exclude = ["tests"]
 
 [dependency-groups]
 dev = [
+    "typer==0.20.0",
     "pytest==9.0.3",
     "pytest-asyncio==1.4.0",
     "pytest-cov==7.1.0",
@@ -98,6 +109,7 @@ ignore = [
     "COM812",  # incompatible with formatter
     "ISC001",  # incompatible with formatter
     "CPY001",  # copyright headers are not used in this project
+    "TID252",  # relative imports between same-package siblings are the house style
 ]
 
 [tool.ruff.lint.flake8-pytest-style]
@@ -107,7 +119,21 @@ fixture-parentheses = false
 keep-runtime-typing = true
 
 [tool.ruff.lint.per-file-ignores]
+"src/tuya_ble_sdk/cli.py" = [
+    "FBT001",   # a boolean-positional flag is the typer idiom
+    "FBT003",   # so is the boolean positional passed to typer.Option
+    "PLR0913",  # a command's options are its signature
+    "PLR0917",
+]
 "tests/**" = [
+    "ARG002",   # the fake peripheral mirrors bleak's signature, unused arguments included
+    "EM101",    # a literal message is fine in a throwaway test double
+    "FBT001",   # so is a boolean flag mirroring bleak's own signature
+    "FBT002",
+    "PLC0415",  # a local import keeps a helper's dependency next to its only use
+    "PT018",    # a composite assertion reads better than splitting one fact in two
+    "S324",     # tests recompute the MD5 the protocol specifies
+    "TRY003",   # a literal message is fine in a throwaway test double
     "S101",     # assert is normal in pytest
     "S105",     # hardcoded-password-string is fine for fake test credentials
     "S106",     # hardcoded-password-func-arg is fine for fake test credentials
