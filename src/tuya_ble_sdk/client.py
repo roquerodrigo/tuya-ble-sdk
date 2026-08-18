@@ -126,6 +126,8 @@ class TuyaBleClient:
         self._client = None
         self._session_key = None
         self._sequence_number = 1
+        self._reassembler = PacketReassembler()
+        self._reports = asyncio.Queue()
         if client is None:
             return
         try:
