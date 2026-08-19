@@ -97,6 +97,36 @@ async def _async_scan(seconds: float) -> list[tuple[BLEDevice, AdvertisementInfo
     return found
 
 
+async def _async_first_advertisement(
+    address: str, seconds: float
+) -> tuple[BLEDevice, AdvertisementData]:
+    """
+    Wait for the device to announce itself and return that very advertisement.
+
+    Scanning for the whole window before connecting is what makes a read fail
+    against a battery-powered device: by the time the scan ends it has stopped
+    listening. The scan therefore stops at the first sighting, leaving the
+    connection to happen while the device is still awake.
+    """
+    found: asyncio.Future[tuple[BLEDevice, AdvertisementData]] = (
+        asyncio.get_running_loop().create_future()
+    )
+
+    def _detected(device: BLEDevice, advertisement: AdvertisementData) -> None:
+        if device.address.upper() == address.upper() and not found.done():
+            found.set_result((device, advertisement))
+
+    scanner = BleakScanner(detection_callback=_detected)
+    await scanner.start()
+    try:
+        return await asyncio.wait_for(found, seconds)
+    except TimeoutError as exception:
+        message = f"{address} did not advertise within {seconds:.0f}s"
+        raise typer.BadParameter(message) from exception
+    finally:
+        await scanner.stop()
+
+
 async def _async_read(
     address: str,
     device_id: str,
@@ -105,12 +135,7 @@ async def _async_read(
     seconds: float,
 ) -> dict[int, DataPoint]:
     """Resolve the device, then run one full session against it."""
-    discovered = await BleakScanner.discover(timeout=seconds, return_adv=True)
-    match = discovered.get(address.upper())
-    if match is None:
-        message = f"{address} did not advertise within {seconds:.0f}s"
-        raise typer.BadParameter(message)
-    device, advertisement = match
+    device, advertisement = await _async_first_advertisement(address, seconds)
     resolved = (
         uuid
         or parse_advertisement(

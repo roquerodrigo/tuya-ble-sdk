@@ -29,9 +29,13 @@ Discovery belongs to the caller: the client takes an already-resolved
 `BLEDevice`, which is what lets Home Assistant hand over a device seen through
 a Bluetooth proxy.
 
-`parse_advertisement` reads the product id, the binding state and the device
-uuid straight from the advertisement — the uuid is encrypted with the product
-id, so no cloud call is needed to learn it.
+`parse_advertisement` reads what the advertisement discloses — every field of
+the result is optional. The uuid is encrypted with the product-id record
+broadcast beside it, so no cloud call is needed to learn it; the readable
+product id, however, is only there on an **unbound** device. One bound to a
+Tuya account broadcasts an obfuscated value in its place: those bytes still
+decrypt the uuid, but they name no product, and the caller has to learn what
+the device is some other way.
 
 ## Command line
 
