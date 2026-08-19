@@ -131,6 +131,8 @@ def test_read_refuses_an_address_that_never_advertised(discovered):
             DEVICE_ID,
             "--local-key",
             LOCAL_KEY,
+            "--seconds",
+            "0.1",
         ],
     )
 
@@ -191,3 +193,40 @@ async def _fake_read(_self):
             identifier=3, data_type=DataPointType.VALUE, value=42, timestamp=1.0
         )
     }
+
+
+def test_read_connects_on_the_first_sighting_not_after_the_window(
+    monkeypatch, discovered
+):
+    """
+    The read must not sweep the whole window before connecting.
+
+    A battery-powered device stops listening while a full scan runs, so the
+    sweep is a silent regression rather than a slow path — this test fails if
+    `read` ever goes back to it.
+    """
+
+    async def _refuse(**_kwargs):
+        message = "read must not sweep the whole window"
+        raise AssertionError(message)
+
+    monkeypatch.setattr(cli_module.BleakScanner, "discover", staticmethod(_refuse))
+    monkeypatch.setattr(cli_module.TuyaBleClient, "async_read_data_points", _fake_read)
+
+    result = runner.invoke(
+        app,
+        [
+            "read",
+            "--address",
+            ADDRESS,
+            "--device-id",
+            DEVICE_ID,
+            "--local-key",
+            LOCAL_KEY,
+            "--seconds",
+            "1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "dp   3" in result.output

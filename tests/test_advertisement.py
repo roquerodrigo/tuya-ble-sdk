@@ -66,7 +66,7 @@ def test_an_empty_service_record_is_not_a_product_id():
 
 def test_an_obfuscated_product_record_still_yields_the_uuid():
     """A bound device broadcasts bytes that name no product but decrypt the uuid."""
-    raw = bytes.fromhex("5bdcee4a9b776f7a")
+    raw = bytes.fromhex("00112233445566ff")
     key = md5(raw).digest()
     manufacturer_data = {
         MANUFACTURER_DATA_IDENTIFIER: bytes([0x80, 3, 0, 0, 1, 0])
