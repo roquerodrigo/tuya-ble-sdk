@@ -124,7 +124,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiooui" },
     { name = "bleak" },
-    { name = "dbus-fast", marker = "sys_platform == 'linux'" },
+    { name = "dbus-fast" },
     { name = "uart-devices" },
     { name = "usb-devices" },
 ]
@@ -942,7 +942,7 @@ wheels = [
 
 [[package]]
 name = "tuya-ble-sdk"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "bleak" },
