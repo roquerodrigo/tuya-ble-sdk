@@ -8,6 +8,7 @@ import pytest
 from tuya_ble_sdk import (
     TuyaBleAuthenticationError,
     TuyaBleCloudClient,
+    TuyaBleCloudError,
     TuyaBleConnectionError,
     TuyaBleProtocolError,
 )
@@ -209,6 +210,20 @@ async def test_a_session_the_client_opened_itself_is_closed(monkeypatch):
     await client.async_close()
 
     assert session.closed
+
+
+async def test_a_rate_limited_login_is_not_reported_as_a_wrong_password():
+    session = FakeGatewaySession(
+        errors={
+            "smartlife.m.user.username.token.get": {
+                "errorCode": "REQUEST_TOO_FREQUENTLY_PLEASE_TRY_AGAIN_LATER",
+                "errorMsg": "Requests are too frequent",
+            }
+        }
+    )
+
+    with pytest.raises(TuyaBleCloudError, match="too frequent"):
+        await build_client(session).async_login()
 
 
 class _PlainResponse:

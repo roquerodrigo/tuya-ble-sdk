@@ -23,6 +23,11 @@ _LOGIN_API = "smartlife.m.user.email.password.login"
 _HOME_LIST_API = "tuya.m.location.list"
 _DEVICE_LIST_API = "tuya.m.my.group.device.list"
 
+# The gateway answers a burst of logins with this instead of judging the
+# credentials, and calling that an authentication failure sends the caller
+# looking for a typo that is not there.
+_RATE_LIMITED = "REQUEST_TOO_FREQUENTLY_PLEASE_TRY_AGAIN_LATER"
+
 
 class TuyaBleCloudClient:
     """
@@ -67,7 +72,8 @@ class TuyaBleCloudClient:
         Log in, replacing any session this client already held.
 
         The password's MD5 is RSA-encrypted under the key the token call hands
-        out, and posted to the login call.
+        out, and posted to the login call. A rejection is reported as an
+        authentication error, unless the gateway is merely rate limiting.
         """
         try:
             token = await self._gateway.async_call_object(
@@ -96,6 +102,8 @@ class TuyaBleCloudClient:
                 },
             )
         except TuyaBleCloudError as exception:
+            if exception.code == _RATE_LIMITED:
+                raise
             message = f"Failed to log in: {exception}"
             raise TuyaBleAuthenticationError(message) from exception
         self._account = AccountSession(
