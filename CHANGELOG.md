@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.1...v0.1.2) (2026-08-23)
+
+
+### Features
+
+* read device credentials from the Tuya account ([2a5d5af](https://github.com/roquerodrigo/tuya-ble-sdk/commit/2a5d5af335eba2c374c5480f102506e5634b798d))
+
+
+### Bug Fixes
+
+* tell a rate-limited login from a rejected one ([3222c52](https://github.com/roquerodrigo/tuya-ble-sdk/commit/3222c52a6173305f7280c9b14181505a4bc26811))
+
 ## [0.1.1](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.0...v0.1.1) (2026-08-19)
 
 
