@@ -2,7 +2,9 @@
 
 Python SDK for **Tuya Bluetooth Low Energy devices**. It speaks the Tuya BLE
 GATT protocol directly — handshake, session key, encrypted frames and
-datapoints — and knows nothing about Home Assistant.
+datapoints — and knows nothing about Home Assistant. It also reads the device
+credentials off the Tuya account, since the handshake needs values the device
+never broadcasts.
 
 Consumed by the [`ha-tuya-ble`](https://github.com/roquerodrigo/ha-tuya-ble)
 integration, which pins it from `manifest.json`.
@@ -37,6 +39,34 @@ Tuya account broadcasts an obfuscated value in its place: those bytes still
 decrypt the uuid, but they name no product, and the caller has to learn what
 the device is some other way.
 
+## Credentials from the account
+
+A session needs a device id and a local key, and no device discloses either:
+only the Tuya account that owns it does. `TuyaBleCloudClient` logs into the
+mobile app gateway with the account's e-mail and password and returns what it
+knows about every device on it.
+
+```python
+from tuya_ble_sdk import TuyaBleCloudClient
+
+async with TuyaBleCloudClient(email, password, country_code, region="us") as cloud:
+    devices = await cloud.async_list_devices()
+
+paired = next(device for device in devices if device.uuid == info.uuid)
+credentials = TuyaBleCredentials(
+    uuid=paired.uuid, device_id=paired.device_id, local_key=paired.local_key
+)
+```
+
+The account describes a Bluetooth device with the same `uuid` its
+advertisement carries and with its `mac`, so either one ties an account record
+to a device seen over the air. The record also names the `product_id` a bound
+device stops broadcasting.
+
+Region is the account's data centre — one of `us`, `eu`, `cn`, `in`, `we` — and
+`country_code` is the calling code the account was registered with (`55` for
+Brazil). Nothing is cached: one client is one login.
+
 ## Command line
 
 The optional `cli` extra installs a `tuya-ble` command:
@@ -48,7 +78,12 @@ uv run --extra cli tuya-ble read \
 ```
 
 `scan` lists every nearby Tuya BLE device with its product id and uuid; `read`
-runs one session and prints the datapoints it reported.
+runs one session and prints the datapoints it reported. `credentials` logs into
+a Tuya account and prints the device id and local key it holds for each device:
+
+```bash
+uv run --extra cli tuya-ble credentials --email you@example.com --country-code 55
+```
 
 ## Not implemented
 

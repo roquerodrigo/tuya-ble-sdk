@@ -23,6 +23,7 @@ classifiers = [
 # installing. Exact versions belong in the dependency groups below and in
 # uv.lock, neither of which reaches the consumer.
 dependencies = [
+    "aiohttp>=3.11.0",
     "bleak>=3.0.0",
     "bleak-retry-connector>=4.4.0",
     "cryptography>=44.0.0",
