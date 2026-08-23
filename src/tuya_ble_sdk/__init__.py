@@ -10,15 +10,19 @@ from __future__ import annotations
 
 from .advertisement import parse_advertisement
 from .client import TuyaBleClient
+from .cloud import DEFAULT_REGION, REGIONS, TuyaBleCloudClient
 from .exceptions import (
     TuyaBleAuthenticationError,
+    TuyaBleCloudError,
     TuyaBleConnectionError,
     TuyaBleError,
     TuyaBleHandshakeTimeoutError,
     TuyaBleProtocolError,
 )
 from .models import (
+    AccountSession,
     AdvertisementInfo,
+    CloudDevice,
     DataPoint,
     DataPointValue,
     DeviceInfo,
@@ -27,14 +31,20 @@ from .models import (
 from .protocol import SERVICE_UUID, DataPointType, TuyaBleCommandCode
 
 __all__ = [
+    "DEFAULT_REGION",
+    "REGIONS",
     "SERVICE_UUID",
+    "AccountSession",
     "AdvertisementInfo",
+    "CloudDevice",
     "DataPoint",
     "DataPointType",
     "DataPointValue",
     "DeviceInfo",
     "TuyaBleAuthenticationError",
     "TuyaBleClient",
+    "TuyaBleCloudClient",
+    "TuyaBleCloudError",
     "TuyaBleCommandCode",
     "TuyaBleConnectionError",
     "TuyaBleCredentials",

@@ -1,4 +1,4 @@
-"""Typer-powered `tuya-ble` CLI: scan for devices and dump their datapoints."""
+"""Typer-powered `tuya-ble` CLI: scan, read datapoints and look up credentials."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from bleak import BleakScanner
 
 from .advertisement import parse_advertisement
 from .client import TuyaBleClient
+from .cloud import DEFAULT_REGION, REGIONS, TuyaBleCloudClient
 from .models import TuyaBleCredentials
 from .protocol import SERVICE_UUID
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from bleak.backends.device import BLEDevice
     from bleak.backends.scanner import AdvertisementData
 
-    from .models import AdvertisementInfo, DataPoint
+    from .models import AdvertisementInfo, CloudDevice, DataPoint
 
 app = typer.Typer(add_completion=False, help="Tuya BLE device control")
 
@@ -64,6 +65,30 @@ def read(
         data_point = data_points[identifier]
         typer.echo(
             f"dp {identifier:>3}  {data_point.data_type.name:<7}  {data_point.value!r}"
+        )
+
+
+@app.command()
+def credentials(
+    email: str = typer.Option(..., help="E-mail of the Tuya account"),
+    password: str = typer.Option(
+        ..., prompt=True, hide_input=True, help="Password of the Tuya account"
+    ),
+    country_code: str = typer.Option(..., help="Country calling code, e.g. 55"),
+    region: str = typer.Option(DEFAULT_REGION, help=f"One of {', '.join(REGIONS)}"),
+    verbose: bool = typer.Option(False, "-v", help="Protocol debug logs"),
+) -> None:
+    """Print the credentials the Tuya account holds for each of its devices."""
+    _configure_logging(verbose=verbose)
+    devices = asyncio.run(_async_credentials(email, password, country_code, region))
+    if not devices:
+        typer.echo("the account lists no device")
+        raise typer.Exit(code=1)
+    for device in devices:
+        typer.echo(
+            f"{device.name}  uuid={device.uuid}  mac={device.mac or '?'}  "
+            f"product_id={device.product_id or '?'}  device_id={device.device_id}  "
+            f"local_key={device.local_key}"
         )
 
 
@@ -150,6 +175,14 @@ async def _async_read(
         TuyaBleCredentials(uuid=resolved, device_id=device_id, local_key=local_key),
     )
     return await client.async_read_data_points()
+
+
+async def _async_credentials(
+    email: str, password: str, country_code: str, region: str
+) -> list[CloudDevice]:
+    """Log in once and return what the account knows about its devices."""
+    async with TuyaBleCloudClient(email, password, country_code, region) as client:
+        return await client.async_list_devices()
 
 
 def _is_tuya(advertisement: AdvertisementData) -> bool:

@@ -7,10 +7,12 @@ from typer.testing import CliRunner
 
 from tuya_ble_sdk import cli as cli_module
 from tuya_ble_sdk.cli import app
+from tuya_ble_sdk.cloud import gateway as gateway_module
 from tuya_ble_sdk.crypto import encrypt
 from tuya_ble_sdk.protocol import MANUFACTURER_DATA_IDENTIFIER, SERVICE_UUID
 
 from .fake_device import DEVICE_ID, LOCAL_KEY, UUID
+from .fake_gateway import BLE_DEVICE, COUNTRY_CODE, EMAIL, PASSWORD, FakeGatewaySession
 
 ADDRESS = "AA:BB:CC:DD:EE:FF"
 PRODUCT_ID = "gvygg3m8"
@@ -230,3 +232,46 @@ def test_read_connects_on_the_first_sighting_not_after_the_window(
 
     assert result.exit_code == 0
     assert "dp   3" in result.output
+
+
+def test_credentials_prints_what_the_account_holds(monkeypatch):
+    session = FakeGatewaySession()
+    monkeypatch.setattr(gateway_module.aiohttp, "ClientSession", lambda: session)
+
+    result = runner.invoke(
+        app,
+        [
+            "credentials",
+            "--email",
+            EMAIL,
+            "--password",
+            PASSWORD,
+            "--country-code",
+            COUNTRY_CODE,
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert BLE_DEVICE["devId"] in result.output
+    assert BLE_DEVICE["localKey"] in result.output
+
+
+def test_credentials_fails_when_the_account_lists_nothing(monkeypatch):
+    session = FakeGatewaySession(devices=[])
+    monkeypatch.setattr(gateway_module.aiohttp, "ClientSession", lambda: session)
+
+    result = runner.invoke(
+        app,
+        [
+            "credentials",
+            "--email",
+            EMAIL,
+            "--password",
+            PASSWORD,
+            "--country-code",
+            COUNTRY_CODE,
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "no device" in result.output
