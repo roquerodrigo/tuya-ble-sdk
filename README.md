@@ -16,6 +16,12 @@ collects the datapoint report and disconnects. Tuya BLE sensors are battery
 powered and only listen for a moment after they advertise, so holding a
 connection open would drain them and occupy a proxy slot for nothing.
 
+The session is bounded end to end: it gives the connection back after
+`SESSION_TIMEOUT` (60 s) whatever the radio is doing, and the connection
+attempt itself after `CONNECT_TIMEOUT` (20 s). A proxy shares a handful of
+slots between every device behind it, so a read that cannot finish has to stop
+holding one.
+
 ```python
 from tuya_ble_sdk import TuyaBleClient, TuyaBleCredentials, parse_advertisement
 

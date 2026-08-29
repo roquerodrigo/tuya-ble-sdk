@@ -289,3 +289,40 @@ async def test_a_silent_status_request_is_a_plain_connection_error(
     with pytest.raises(TuyaBleConnectionError, match="SENDER_DEVICE_STATUS") as raised:
         await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
     assert not isinstance(raised.value, TuyaBleHandshakeTimeoutError)
+
+
+async def test_a_session_that_overruns_gives_the_connection_back(
+    monkeypatch, connected, credentials
+):
+    """The proxy's connection slot is released even when the device goes quiet."""
+    monkeypatch.setattr(client_module, "SESSION_TIMEOUT", 0.05)
+    monkeypatch.setattr(connected, "_answer", lambda _frame: None)
+
+    with pytest.raises(TuyaBleConnectionError, match="outlasted"):
+        await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
+    assert connected.disconnected is True
+
+
+async def test_a_connection_that_never_answers_is_bounded(monkeypatch, credentials):
+    monkeypatch.setattr(client_module, "CONNECT_TIMEOUT", 0.05)
+
+    async def _hang(*_args, **_kwargs):
+        await asyncio.sleep(60)
+
+    monkeypatch.setattr(client_module, "establish_connection", _hang)
+
+    with pytest.raises(TuyaBleConnectionError, match="Failed to connect"):
+        await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
+
+
+async def test_a_disconnect_that_hangs_does_not_hold_the_session(
+    monkeypatch, connected, credentials
+):
+    monkeypatch.setattr(client_module, "DISCONNECT_TIMEOUT", 0.05)
+
+    async def _hang() -> None:
+        await asyncio.sleep(60)
+
+    monkeypatch.setattr(connected, "disconnect", _hang)
+
+    assert await TuyaBleClient(FakeBleDevice(), credentials).async_read_data_points()
