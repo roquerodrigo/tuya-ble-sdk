@@ -47,10 +47,13 @@ if TYPE_CHECKING:
 
 LOGGER = logging.getLogger(__name__)
 
-CONNECT_ATTEMPTS = 3
-RESPONSE_TIMEOUT = 20.0
-FIRST_REPORT_TIMEOUT = 15.0
+CONNECT_ATTEMPTS = 2
+CONNECT_TIMEOUT = 20.0
+RESPONSE_TIMEOUT = 12.0
+FIRST_REPORT_TIMEOUT = 12.0
 REPORT_QUIET_PERIOD = 1.5
+DISCONNECT_TIMEOUT = 5.0
+SESSION_TIMEOUT = 60.0
 
 
 class TuyaBleClient:
@@ -92,24 +95,47 @@ class TuyaBleClient:
         pushes its datapoints as separate notifications, so the report is
         considered complete once it goes quiet. It often has nothing to say —
         the result is then empty, which is an answer, not an error.
+
+        The whole session is bounded by ``SESSION_TIMEOUT``. A Bluetooth proxy
+        has a handful of connection slots shared by every device behind it, and
+        this one holds a slot from the first connection attempt to the
+        disconnect — so the session has to give the slot back on a schedule
+        rather than whenever the radio decides it is done. The disconnect is
+        deliberately outside the deadline: it is what releases the slot, and
+        expiring the read must not cancel it.
         """
-        await self._async_connect()
         try:
-            await self._async_handshake()
-            return await self._async_collect_report()
+            async with asyncio.timeout(SESSION_TIMEOUT):
+                await self._async_connect()
+                await self._async_handshake()
+                return await self._async_collect_report()
+        except TimeoutError as exception:
+            message = (
+                f"Failed to read {self.address}: "
+                f"the session outlasted {SESSION_TIMEOUT:.0f}s"
+            )
+            raise TuyaBleConnectionError(message) from exception
         finally:
             await self._async_disconnect()
 
     async def _async_connect(self) -> None:
-        """Open the GATT link and subscribe to the notify characteristic."""
+        """
+        Open the GATT link and subscribe to the notify characteristic.
+
+        ``CONNECT_TIMEOUT`` caps the retries rather than each attempt: a device
+        that is simply asleep times out slowly and is not worth a second try
+        within the same session, while the transient proxy errors that a retry
+        does fix fail in a couple of seconds and still get one.
+        """
         try:
-            self._client = await establish_connection(
-                BleakClientWithServiceCache,
-                self._device,
-                self._device.name or self._device.address,
-                use_services_cache=True,
-                max_attempts=CONNECT_ATTEMPTS,
-            )
+            async with asyncio.timeout(CONNECT_TIMEOUT):
+                self._client = await establish_connection(
+                    BleakClientWithServiceCache,
+                    self._device,
+                    self._device.name or self._device.address,
+                    use_services_cache=True,
+                    max_attempts=CONNECT_ATTEMPTS,
+                )
             await self._client.start_notify(
                 NOTIFY_CHARACTERISTIC_UUID, self._on_notification
             )
@@ -136,7 +162,8 @@ class TuyaBleClient:
         if client is None:
             return
         try:
-            await client.disconnect()
+            async with asyncio.timeout(DISCONNECT_TIMEOUT):
+                await client.disconnect()
         except Exception:  # teardown must not mask the session's own failure
             LOGGER.debug("%s: disconnect failed; ignoring", self.address, exc_info=True)
 
