@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.2...v0.1.3) (2026-08-30)
+
+
+### Bug Fixes
+
+* bound the session so a read gives the connection back ([51b8064](https://github.com/roquerodrigo/tuya-ble-sdk/commit/51b806429eacbed7718201de70a3cb7d9f26812d))
+
+
+### Development Dependencies
+
+* **deps-dev:** bump the python-deps group with 5 updates ([d4609cb](https://github.com/roquerodrigo/tuya-ble-sdk/commit/d4609cb2588768980e873f1031b8d7be577bbc4c))
+
 ## [0.1.2](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.1...v0.1.2) (2026-08-23)
 
 
