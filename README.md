@@ -1,5 +1,7 @@
 # tuya-ble-sdk
 
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2?logo=githubsponsors&logoColor=white&style=for-the-badge)](https://github.com/sponsors/roquerodrigo)
+
 Python SDK for **Tuya Bluetooth Low Energy devices**. It speaks the Tuya BLE
 GATT protocol directly — handshake, session key, encrypted frames and
 datapoints — and knows nothing about Home Assistant. It also reads the device
@@ -113,6 +115,10 @@ uv run pytest               # 90 % coverage gate
 Runtime dependencies carry a `>=` floor and nothing else: Home Assistant pins its
 own transitive dependencies exactly, so an `==` pin here eventually contradicts
 HA's pin and the integration stops installing.
+
+## Support
+
+This SDK is built and maintained on personal time, on hardware bought for the purpose. If it is useful to you, consider [sponsoring the work](https://github.com/sponsors/roquerodrigo) — it keeps the devices, the testing and the releases coming.
 
 ## Credits
 
