@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.4](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.3...v0.1.4) (2026-09-07)
+
+
+### Dependencies
+
+* **deps:** bump the python-deps group across 1 directory with 4 updates ([39358ff](https://github.com/roquerodrigo/tuya-ble-sdk/commit/39358ff195fad4c0ad8bc3d58217bd0267ce4ad4))
+
+
+### Documentation
+
+* add CLAUDE.md ([98dbf1d](https://github.com/roquerodrigo/tuya-ble-sdk/commit/98dbf1db763d9e1d2527831e3beb5d39fcd62909))
+* add GitHub Sponsors button and support section ([9201a50](https://github.com/roquerodrigo/tuya-ble-sdk/commit/9201a503ae603d084eb3c0e96a97a1a789b1de42))
+
 ## [0.1.3](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.2...v0.1.3) (2026-08-30)
 
 
