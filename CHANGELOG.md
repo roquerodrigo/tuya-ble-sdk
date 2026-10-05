@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.1.4](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.3...v0.1.4) (2026-10-05)
+
+
+### Dependencies
+
+* **deps:** bump the python-deps group across 1 directory with 4 updates ([39358ff](https://github.com/roquerodrigo/tuya-ble-sdk/commit/39358ff195fad4c0ad8bc3d58217bd0267ce4ad4))
+* **deps:** bump the python-deps group with 2 updates ([049a753](https://github.com/roquerodrigo/tuya-ble-sdk/commit/049a7537cebfdb7b3ba8a1b3154395b5cbf084d1))
+* **deps:** bump the python-deps group with 3 updates ([8e6457f](https://github.com/roquerodrigo/tuya-ble-sdk/commit/8e6457fae9a2ef7c351a82281cab95031cce79a0))
+
+
+### Development Dependencies
+
+* **deps-dev:** bump ruff in the python-deps group ([2fc0a1e](https://github.com/roquerodrigo/tuya-ble-sdk/commit/2fc0a1eb240021d8122bd12913885594313b4df0))
+
+
+### Documentation
+
+* add CLAUDE.md ([98dbf1d](https://github.com/roquerodrigo/tuya-ble-sdk/commit/98dbf1db763d9e1d2527831e3beb5d39fcd62909))
+* add GitHub Sponsors button and support section ([9201a50](https://github.com/roquerodrigo/tuya-ble-sdk/commit/9201a503ae603d084eb3c0e96a97a1a789b1de42))
+* refresh CLAUDE.md ([b83f65f](https://github.com/roquerodrigo/tuya-ble-sdk/commit/b83f65fd49a86ac8e321da2adebbf3fda8ca7b56))
+
+
+### Build System
+
+* **release:** bump uv.lock through release-please ([1b0dd08](https://github.com/roquerodrigo/tuya-ble-sdk/commit/1b0dd088cc99d6773a4f483bec3a37867d3685a0))
+
 ## [0.1.3](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.2...v0.1.3) (2026-08-30)
 
 
