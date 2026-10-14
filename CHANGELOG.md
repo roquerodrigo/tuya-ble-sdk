@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.3...v0.1.4) (2026-10-14)
+
+
+### Miscellaneous Chores
+
+* **release:** keep only user-facing changes in the changelog ([7c5519c](https://github.com/roquerodrigo/tuya-ble-sdk/commit/7c5519c71e01addbc23570e3437bf6682767866f))
+
 ## [0.1.3](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.2...v0.1.3) (2026-08-30)
 
 
