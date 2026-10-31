@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.4](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.3...v0.1.4) (2026-10-31)
+
+Internal maintenance only, with no changes for those who use the project.
+
 ## [0.1.3](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.2...v0.1.3) (2026-08-30)
 
 
