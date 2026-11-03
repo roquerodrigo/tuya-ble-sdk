@@ -6,18 +6,17 @@ connect, handshake, collect, disconnect), the public API, and the CLI.
 
 ## Releasing (footgun)
 
-Versioning is automated by release-please (`release-please-config.json`,
-`.release-please-manifest.json`). **Never hand-edit `version` in `pyproject.toml`,
-`uv.lock` or the manifest** — a merged commit `chore: let release-please own the version`
-handed that job away. Commits must be Conventional Commits; their `type:`
-picks the changelog section and drives the bump.
+Versioning is automated by Release Autopilot, with no configuration file in the
+repository. **Never hand-edit `version` in `pyproject.toml` or `uv.lock`** — the
+release PR owns both. Commits must be Conventional Commits; their `type:` drives
+the bump.
 
 Release flow (`.github/workflows/release.yml`): a push to `main` with green CI
-lets release-please groom/tag a release PR and publish the tag to PyPI. A PR
-with green CI does **not** cut a release (`workflow_run.event == 'push'` guards
-it). `uv.lock` is a release-please `extra-files` entry, so the release PR bumps
-the package's own version in it alongside `pyproject.toml` — there is no
-separate lock-sync job.
+lets Release Autopilot keep a release PR up to date, tag it and publish the
+tag to PyPI. A PR with green CI does **not** cut a release
+(`workflow_run.event == 'push'` guards it). Release Autopilot detects `uv.lock`
+on its own, so the release PR bumps the package's own version in it alongside
+`pyproject.toml` — there is no separate lock-sync job.
 
 ## Downstream coupling
 
