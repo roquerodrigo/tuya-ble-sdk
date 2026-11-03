@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.3...v0.1.4) (2026-11-03)
+
+### Improvements
+
+- Updates the aiohttp dependency to version 3.14.5. ([#20](https://github.com/roquerodrigo/tuya-ble-sdk/pull/20), [#25](https://github.com/roquerodrigo/tuya-ble-sdk/pull/25))
+- Updates the bleak-retry-connector dependency to version 4.7.1. ([#13](https://github.com/roquerodrigo/tuya-ble-sdk/pull/13), [#16](https://github.com/roquerodrigo/tuya-ble-sdk/pull/16))
+- Updates the cryptography dependency to version 50.0.2. ([#13](https://github.com/roquerodrigo/tuya-ble-sdk/pull/13), [#19](https://github.com/roquerodrigo/tuya-ble-sdk/pull/19))
+
 ## [0.1.3](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.2...v0.1.3) (2026-08-30)
 
 
