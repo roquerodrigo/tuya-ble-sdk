@@ -1597,7 +1597,7 @@ wheels = [
 
 [[package]]
 name = "tuya-ble-sdk"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "." }
 default-groups = ["dev", "lint"]
 dependencies = [
