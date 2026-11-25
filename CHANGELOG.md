@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.5](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.4...v0.1.5) (2026-11-25)
+
+### Improvements
+
+- Updated the bleak Bluetooth library dependency to version 3.1.0. ([#33](https://github.com/roquerodrigo/tuya-ble-sdk/pull/33))
+
 ## [0.1.4](https://github.com/roquerodrigo/tuya-ble-sdk/compare/v0.1.3...v0.1.4) (2026-11-03)
 
 ### Improvements
